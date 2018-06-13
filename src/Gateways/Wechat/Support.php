@@ -52,27 +52,26 @@ class Support
      * @param string      $endpoint
      * @param array       $data
      * @param string|null $key
-     * @param string      $certClient
-     * @param string      $certKey
+     * @param array       $cert
      *
      * @return Collection
      */
-    public static function requestApi($endpoint, $data, $key = null, $certClient = null, $certKey = null): Collection
+    public static function requestApi($endpoint, $data, $key = null, $cert = []): Collection
     {
         Log::debug('Request To Wechat Api', [self::baseUri().$endpoint, $data]);
 
         $result = self::getInstance()->post(
             $endpoint,
             self::toXml($data),
-            ($certClient !== null && $certKey !== null) ? ['cert' => $certClient, 'ssl_key' => $certKey] : []
+            $cert
         );
         $result = is_array($result) ? $result : self::fromXml($result);
 
         if (!isset($result['return_code']) || $result['return_code'] != 'SUCCESS' || $result['result_code'] != 'SUCCESS') {
             throw new GatewayException(
                 'Get Wechat API Error:'.$result['return_msg'].($result['err_code_des'] ?? ''),
-                20000,
-                $result
+                $result,
+                20000
             );
         }
 
@@ -82,7 +81,7 @@ class Support
 
         Log::warning('Wechat Sign Verify FAILED', $result);
 
-        throw new InvalidSignException('Wechat Sign Verify FAILED', 3, $result);
+        throw new InvalidSignException('Wechat Sign Verify FAILED', $result);
     }
 
     /**
@@ -96,7 +95,7 @@ class Support
      *
      * @return array
      */
-    public static function filterPayload($payload, $order, $config)
+    public static function filterPayload($payload, $order, $config, $preserveNotifyUrl = false)
     {
         $payload = array_merge($payload, is_array($order) ? $order : ['out_trade_no' => $order]);
 
@@ -108,7 +107,11 @@ class Support
             $payload['sub_appid'] = $config->get('sub_'.$type, '');
         }
 
-        unset($payload['notify_url'], $payload['trade_type'], $payload['type']);
+        unset($payload['trade_type'], $payload['type']);
+
+        if (!$preserveNotifyUrl) {
+            unset($payload['notify_url']);
+        }
 
         $payload['sign'] = self::generateSign($payload, $config->get('key'));
 
@@ -127,7 +130,7 @@ class Support
     public static function generateSign($data, $key = null): string
     {
         if (is_null($key)) {
-            throw new InvalidArgumentException('Missing Wechat Config -- [key]', 1);
+            throw new InvalidArgumentException('Missing Wechat Config -- [key]');
         }
 
         ksort($data);
@@ -169,7 +172,7 @@ class Support
     public static function toXml($data): string
     {
         if (!is_array($data) || count($data) <= 0) {
-            throw new InvalidArgumentException('Convert To Xml Error! Invalid Array!', 2);
+            throw new InvalidArgumentException('Convert To Xml Error! Invalid Array!');
         }
 
         $xml = '<xml>';
@@ -194,7 +197,7 @@ class Support
     public static function fromXml($xml): array
     {
         if (!$xml) {
-            throw new InvalidArgumentException('Convert To Array Error! Invalid Xml!', 3);
+            throw new InvalidArgumentException('Convert To Array Error! Invalid Xml!');
         }
 
         libxml_disable_entity_loader(true);

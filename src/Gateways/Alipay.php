@@ -6,7 +6,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Yansongda\Pay\Contracts\GatewayApplicationInterface;
 use Yansongda\Pay\Contracts\GatewayInterface;
-use Yansongda\Pay\Exceptions\GatewayException;
+use Yansongda\Pay\Exceptions\InvalidGatewayException;
 use Yansongda\Pay\Exceptions\InvalidSignException;
 use Yansongda\Pay\Gateways\Alipay\Support;
 use Yansongda\Pay\Log;
@@ -91,7 +91,7 @@ class Alipay implements GatewayApplicationInterface
             return $this->makePay($gateway);
         }
 
-        throw new GatewayException("Pay Gateway [{$gateway}] not exists", 1);
+        throw new InvalidGatewayException("Pay Gateway [{$gateway}] not exists");
     }
 
     /**
@@ -117,7 +117,7 @@ class Alipay implements GatewayApplicationInterface
 
         Log::warning('Alipay Sign Verify FAILED', $data);
 
-        throw new InvalidSignException('Alipay Sign Verify FAILED', 3, $data);
+        throw new InvalidSignException('Alipay Sign Verify FAILED', $data);
     }
 
     /**
@@ -201,6 +201,28 @@ class Alipay implements GatewayApplicationInterface
     }
 
     /**
+     * Download bill.
+     *
+     * @author yansongda <me@yansongda.cn>
+     *
+     * @param string|array $bill
+     *
+     * @return string
+     */
+    public function download($bill): string
+    {
+        $this->payload['method'] = 'alipay.data.dataservice.bill.downloadurl.query';
+        $this->payload['biz_content'] = json_encode(is_array($bill) ? $bill : ['bill_type' => 'trade', 'bill_date' => $bill]);
+        $this->payload['sign'] = Support::generateSign($this->payload, $this->config->get('private_key'));
+
+        Log::debug('Download Bill:', [$this->gateway, $this->payload]);
+
+        $result = Support::requestApi($this->payload, $this->config->get('ali_public_key'));
+
+        return ($result instanceof Collection) ? $result->bill_download_url : '';
+    }
+
+    /**
      * Reply success to alipay.
      *
      * @author yansongda <me@yansongda.cn>
@@ -229,7 +251,7 @@ class Alipay implements GatewayApplicationInterface
             return $app->pay($this->gateway, $this->payload);
         }
 
-        throw new GatewayException("Pay Gateway [{$gateway}] Must Be An Instance Of GatewayInterface", 2);
+        throw new InvalidGatewayException("Pay Gateway [{$gateway}] Must Be An Instance Of GatewayInterface");
     }
 
     /**
