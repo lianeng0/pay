@@ -8,13 +8,30 @@
 
 ## 例子
 
-```php
+```PHP
 $order = [
     'out_trade_no' => '1514027114',
     'refund_amount' => '0.01',
 ];
 
 $result = $alipay->refund($order);
+```
+
+## 查询退款订单
+
+> v2.4.0 及以上可用
+
+```PHP
+$order = [
+    'out_trade_no' => '1514027114',
+    'out_request_no' => '1514027114'
+];
+
+// v2.7.2 及以下版本请使用
+// $result = $alipay->find($order, true);
+
+// v2.7.3 及以上版本请使用
+$result = $alipay->find($order, 'refund');
 ```
 
 ## 订单配置参数

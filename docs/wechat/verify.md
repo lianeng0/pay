@@ -6,8 +6,21 @@
 
 # 使用方法
 
-```php
+## 支付异步通知验证
+
+```PHP
 $result = $wechat->verify();
+// 是的，你没有看错，就是这么简单！
+
+// return $wechat->success()->send(); // laravel 框架直接 return $wechat->success();
+```
+
+## 退款异步通知验证
+
+> v2.4.0 及以上可用
+
+```PHP
+$result = $wechat->verify(null, true);
 // 是的，你没有看错，就是这么简单！
 
 // return $wechat->success()->send(); // laravel 框架直接 return $wechat->success();

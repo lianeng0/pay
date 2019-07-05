@@ -2,6 +2,9 @@
 
 namespace Yansongda\Pay\Contracts;
 
+use Symfony\Component\HttpFoundation\Response;
+use Yansongda\Supports\Collection;
+
 interface GatewayApplicationInterface
 {
     /**
@@ -12,7 +15,7 @@ interface GatewayApplicationInterface
      * @param string $gateway
      * @param array  $params
      *
-     * @return Yansongda\Supports\Collection|Symfony\Component\HttpFoundation\Response
+     * @return Collection|Response
      */
     public function pay($gateway, $params);
 
@@ -22,10 +25,11 @@ interface GatewayApplicationInterface
      * @author yansongda <me@yansongda.cn>
      *
      * @param string|array $order
+     * @param string       $type
      *
-     * @return Yansongda\Supports\Collection
+     * @return Collection
      */
-    public function find($order);
+    public function find($order, $type);
 
     /**
      * Refund an order.
@@ -34,7 +38,7 @@ interface GatewayApplicationInterface
      *
      * @param array $order
      *
-     * @return Yansongda\Supports\Collection
+     * @return Collection
      */
     public function refund($order);
 
@@ -45,7 +49,7 @@ interface GatewayApplicationInterface
      *
      * @param string|array $order
      *
-     * @return Yansongda\Supports\Collection
+     * @return Collection
      */
     public function cancel($order);
 
@@ -56,7 +60,7 @@ interface GatewayApplicationInterface
      *
      * @param string|array $order
      *
-     * @return Yansongda\Supports\Collection
+     * @return Collection
      */
     public function close($order);
 
@@ -65,16 +69,19 @@ interface GatewayApplicationInterface
      *
      * @author yansongda <me@yansongda.cn>
      *
-     * @return Yansongda\Supports\Collection
+     * @param string|null $content
+     * @param bool        $refund
+     *
+     * @return Collection
      */
-    public function verify();
+    public function verify($content, $refund);
 
     /**
      * Echo success to server.
      *
      * @author yansongda <me@yansongda.cn>
      *
-     * @return Symfony\Component\HttpFoundation\Response
+     * @return Response
      */
     public function success();
 }

@@ -4,11 +4,12 @@
 | :---: | :---: | :---: |
 | refund | array $order | Collection |
 
+
 # 使用方法
 
-## 例子
+## 退款操作
 
-```php
+```PHP
 $order = [
     'out_trade_no' => '1514192025',
     'out_refund_no' => time(),
@@ -28,9 +29,11 @@ $result = $wechat->refund($order);
 
 如果您需要退 `APP/小程序` 的订单，请传入参数：`['type' => 'app']`/`['type' => 'miniapp']`
 
+
 # 返回值
 
 返回 Collection 类型，可以通过 `$collection->xxx` 得到服务器返回的数据。
+
 
 # 异常
 
